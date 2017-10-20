@@ -31,7 +31,22 @@ const cacheWrapper = {
 
         return foundItem
     },
-
+    update: async (key, mongoDBcollection, logger, value)=>{
+        const generatedItem = generateCacheItemForKey(key, value)
+        await cleanExceedingItems(mongoDBcollection)
+        await mongoDBcollection.save(generatedItem)
+        logger.warn({message: consts.LOG_CONSTANT_CACHE_GENERATED, key: key, val: generatedItem.val})
+        return generatedItem
+    },
+    remove: async (key, mongoDBcollection, logger)=>{
+        const foundItem = await mongoDBcollection.findOne({key: key})
+        if(foundItem) {
+            await mongoDBcollection.remove(foundItem)
+            logger.warn({message: consts.LOG_CONSTANT_CACHE_REMOVED, key: key})
+            return true
+        }
+        return false
+    },
 }
 
 const cleanExceedingItems = async (mongoDBcollection) => {
@@ -64,10 +79,10 @@ const cleanExceedingItems = async (mongoDBcollection) => {
     return null
 }
 
-const generateCacheItemForKey = (key) => {
+const generateCacheItemForKey = (key, value = null) => {
     return {
         key: key,
-        val: generateRandomString(),
+        val: value || generateRandomString(),
         ttl: moment().add(config.ttl.quantity,config.ttl.type).toDate()
     }
 }
