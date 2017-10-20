@@ -12,7 +12,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 const index = require('./routes/index')
-
 app.use('/', index);
 
 // catch 404 and forward to error handler
